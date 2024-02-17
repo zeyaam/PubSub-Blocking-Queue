@@ -67,7 +67,7 @@ The `PubSubController` consolidates the production of input data and execution o
 
 - [Install Java on your machine.](https://www.java.com/en/download/help/download_options.html)
 - [Install an IDE.](https://www.jetbrains.com/idea/download/?section=mac)
-- [Clone this repo.](https://github.com/zeyaam/PubSub-Blocking-Queue)
+- [Clone this repo.]()
 - Open the project in an IDE and run the `Main.java` file.
 
 ---

@@ -3,9 +3,9 @@ package PubSub.Producer;
 import java.io.FileReader;
 import java.util.Scanner;
 
-import DataStructures.Queue.BlockingQueue;
 import Model.Point;
 import Model.Task.CoordinateTask;
+import PubSub.PubSub;
 
 /**
  * The CoordinatesProducer class represents a producer that reads coordinate
@@ -13,22 +13,24 @@ import Model.Task.CoordinateTask;
  * and adds them to a blocking queue.
  */
 public class CoordinatesProducer extends Thread {
-    private Scanner scanner;
-    private BlockingQueue<CoordinateTask> queue;
-    private int NUM_COORDS;
+    private final PubSub pubSub;
+    private final Scanner scanner;
+    private final int NUM_COORDS;
+    private final String topicName;
 
     /**
      * Constructs a new CoordinatesProducer with the specified parameters.
      *
      * @param fileReader the FileReader object used to read the coordinates from a
      *                   file
-     * @param queue      the BlockingQueue object used to store the coordinate tasks
+     * @param pubSub      the PubSub object used to publish tasks
      * @param NUM_COORDS the number of coordinates to be produced
      */
-    public CoordinatesProducer(FileReader fileReader, BlockingQueue<CoordinateTask> queue, int NUM_COORDS) {
+    public CoordinatesProducer(PubSub pubSub, String topicName, FileReader fileReader, int NUM_COORDS) {
+        this.pubSub = pubSub;
         this.scanner = new Scanner(fileReader);
-        this.queue = queue;
         this.NUM_COORDS = NUM_COORDS;
+        this.topicName = topicName;
     }
 
     @Override
@@ -36,11 +38,11 @@ public class CoordinatesProducer extends Thread {
         while (true) {
             CoordinateTask newTask = readTask();
             if (newTask == null) {
-                queue.stop();
+                pubSub.stopPublishing(topicName);
                 System.out.println("No more points to read, producer is shutting down");
                 return;
             }
-            queue.addToQueue(newTask);
+            pubSub.publish(topicName, newTask);
         }
     }
 

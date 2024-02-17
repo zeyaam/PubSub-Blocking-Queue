@@ -1,22 +1,18 @@
 package PubSub;
 
 import DataStructures.Graph.GraphUtils;
-import DataStructures.Queue.BlockingQueue;
-import PubSub.Consumer.CoordinatesConsumer;
-import PubSub.Consumer.GraphConsumer;
-import PubSub.Producer.CoordinatesProducer;
 import PubSub.Producer.GraphProducer;
+import PubSub.Producer.CoordinatesProducer;
 import Model.Task.CoordinateTask;
+import Model.Point;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * The PubSubController class is responsible for coordinating the publishing and
@@ -26,13 +22,80 @@ import java.util.concurrent.TimeUnit;
  * and graphs.
  */
 public class PubSubController {
+    private static final GraphUtils<Integer> utils = new GraphUtils<>();
     private static final int NUM_COORDS = 100;
     private static final int NUM_GRAPHS = 200;
-    private static final boolean POPULATE_COORDS = true;
+    private static final boolean POPULATE_COORDS = false;
     private static final boolean CREATE_GRAPHS = false;
     private static final int GRAPH_SIZE = 30;
 
     public PubSubController() {
+    }
+
+    /**
+     * Starts the graph publishing and subscribing process.
+     *
+     * @param inputFile  the input file containing graph data
+     * @param outputFile the output file to write the results
+     * @param numProd    the number of graph producers
+     * @param numCons    the number of graph consumers
+     * @throws IOException          if an I/O error occurs
+     * @throws InterruptedException if the thread is interrupted while waiting
+     */
+    public static void startGraphPubSub(File inputFile, File outputFile, int numProd, int numCons)
+            throws IOException, InterruptedException {
+        PubSub pubSub = new PubSub();
+        String topicName = "Graph";
+        FileWriter fileWriter = new FileWriter(outputFile);
+        if (CREATE_GRAPHS) {
+            generateAdjacencyLists(inputFile);
+        }
+        ArrayList<GraphProducer> graphProducers = new ArrayList<GraphProducer>();
+
+        for (int i = 0; i < numProd; i++) {
+            graphProducers.add(new GraphProducer(pubSub, topicName, new FileReader(inputFile), GRAPH_SIZE));
+        }
+        for (int j = 0; j < numCons; j++) {
+            Consumer<HashMap<Integer, ArrayList<Integer>>> consumer = (graph) -> {
+                if (graph == null) {
+                    return;
+                }
+                if (!utils.hasCycle(graph) && utils.isConnected(graph)) {
+                    try {
+                        String[] graphString = GraphUtils.convertGraphToString(graph);
+                        for (String s : graphString) {
+                            fileWriter.write(s);
+                            fileWriter.write('\n');
+                        }
+                        fileWriter.write('\n');
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+
+            pubSub.subscribe(topicName, consumer);
+        }
+
+        for (GraphProducer p : graphProducers) {
+            p.start();
+        }
+
+        while (true) {
+            if (pubSub.hasStoppedPublishing(topicName)) {
+                try {
+                    fileWriter.flush();
+                    fileWriter.close();
+                    for (int i = 0; i < numProd; i++) {
+                        graphProducers.get(i).join();
+                    }
+                    break;
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            TimeUnit.SECONDS.sleep(1);
+        }
     }
 
     /**
@@ -47,25 +110,47 @@ public class PubSubController {
      */
     public static void startCoordinatesPubSub(File inputFile, File outputFile, int numProd, int numCons)
             throws IOException, InterruptedException {
+        PubSub pubSub = new PubSub();
+        String topicName = "Coordinates";
         FileWriter fileWriter = new FileWriter(outputFile);
-        BlockingQueue<CoordinateTask> queue = new BlockingQueue<CoordinateTask>();
+        // BlockingQueue<CoordinateTask> queue = new BlockingQueue<CoordinateTask>();
         if (POPULATE_COORDS) {
             populateCoordinates(inputFile);
         }
 
         ArrayList<CoordinatesProducer> coordinatesProducers = new ArrayList<CoordinatesProducer>();
-        ArrayList<CoordinatesConsumer> coordinatesConsumers = new ArrayList<CoordinatesConsumer>();
 
         for (int i = 0; i < numProd; i++) {
-            coordinatesProducers.add(new CoordinatesProducer(new FileReader(inputFile), queue, NUM_COORDS));
+            coordinatesProducers.add(new CoordinatesProducer(pubSub, topicName, new FileReader(inputFile), NUM_COORDS));
         }
 
-        for (int j = 0; j < numCons; numCons++) {
-            coordinatesConsumers.add(new CoordinatesConsumer(fileWriter, queue));
-        }
+        for (int j = 0; j < numCons; j++) {
+            Consumer<CoordinateTask> consumer = (task) -> {
+                if (task == null) {
+                    return;
+                }
+                double minDist = Double.MAX_VALUE;
+                Point closestPoint = null;
+                for (int i = 0; i < task.points.length; i++) {
+                    double currDist = task.point.getDistance(task.points[i]);
+                    if (currDist < minDist) {
+                        minDist = currDist;
+                        closestPoint = task.points[i];
+                    }
+                }
+                assert closestPoint != null;
+                String response = "Closest point to " + task.point.print() + " is " + closestPoint.print()
+                        + " with distance " + minDist + '\n';
+                System.out.println("Writing to File: " + response);
+                try {
+                    fileWriter.write(response);
+                    fileWriter.write('\n');
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
 
-        for (CoordinatesConsumer c : coordinatesConsumers) {
-            c.start();
+            };
+            pubSub.subscribe(topicName, consumer);
         }
 
         for (CoordinatesProducer p : coordinatesProducers) {
@@ -73,16 +158,13 @@ public class PubSubController {
         }
 
         while (true) {
-            if (!queue.getIsRunning()) {
+            if (pubSub.hasStoppedPublishing(topicName)) {
                 try {
                     fileWriter.flush();
                     fileWriter.close();
                     for (int i = 0; i < numProd; i++) {
                         coordinatesProducers.get(i).join();
                     }
-                    for (int i = 0; i < numCons; i++) {
-                        coordinatesConsumers.get(i).join();
-                    }
                     break;
                 } catch (IOException | InterruptedException e) {
                     throw new RuntimeException(e);
@@ -90,72 +172,6 @@ public class PubSubController {
             }
             TimeUnit.SECONDS.sleep(1);
         }
-    }
-
-    /**
-     * Starts the graph publishing and subscribing process.
-     * 
-     * @param inputFile  the input file containing graph data
-     * @param outputFile the output file to write the results
-     * @param numProd    the number of graph producers
-     * @param numCons    the number of graph consumers
-     * @throws IOException          if an I/O error occurs
-     * @throws InterruptedException if the thread is interrupted while waiting
-     */
-    public static void startGraphPubSub(File inputFile, File outputFile, int numProd, int numCons)
-            throws IOException, InterruptedException {
-        FileWriter fileWriter = new FileWriter(outputFile);
-        BlockingQueue<HashMap<Integer, ArrayList<Integer>>> queue = new BlockingQueue<>();
-        if (CREATE_GRAPHS) {
-            generateAdjacencyLists(inputFile);
-        }
-        ArrayList<GraphProducer> graphProducers = new ArrayList<>();
-        ArrayList<GraphConsumer> graphConsumers = new ArrayList<>();
-
-//        GraphProducer graphProducer = new GraphProducer(new FileReader(inputFile), queue, NUM_GRAPHS, GRAPH_SIZE);
-//        graphProducer.join(3000);
-//
-//        GraphConsumer graphConsumer = new GraphConsumer(fileWriter, queue);
-//        graphConsumer.join(3000);
-//
-//        graphConsumer.start();
-//        graphProducer.start();
-
-        for (int i = 0; i < numProd; i++) {
-            graphProducers.add(new GraphProducer(new FileReader(inputFile), queue, NUM_GRAPHS, GRAPH_SIZE));
-        }
-
-        for (int j = 0; j < numCons; j++) {
-            graphConsumers.add(new GraphConsumer(fileWriter, queue));
-        }
-
-        for (GraphConsumer c : graphConsumers) {
-            c.start();
-        }
-
-        for (GraphProducer p : graphProducers) {
-            p.start();
-        }
-
-        while (true) {
-            if (!queue.getIsRunning()) {
-                try {
-                    fileWriter.flush();
-                    fileWriter.close();
-                    for (int i = 0; i < numProd; i++) {
-                        graphProducers.get(i).join();
-                    }
-                    for (int i = 0; i < numCons; i++) {
-                        graphConsumers.get(i).join();
-                    }
-                    break;
-                } catch (IOException | InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            TimeUnit.SECONDS.sleep(1);
-        }
-
     }
 
     /**

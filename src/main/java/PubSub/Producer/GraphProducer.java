@@ -1,6 +1,6 @@
 package PubSub.Producer;
 
-import DataStructures.Queue.BlockingQueue;
+import PubSub.PubSub;
 
 import java.io.FileReader;
 import java.util.*;
@@ -11,17 +11,19 @@ import java.util.stream.Collectors;
  * and adds them to a blocking queue.
  */
 public class GraphProducer extends Thread {
-    private Scanner scanner;
-    private BlockingQueue<HashMap<Integer, ArrayList<Integer>>> queue;
-    private int NUM_GRAPHS;
-    private int GRAPH_SIZE;
+    private final Scanner scanner;
+    private final PubSub pubSub;
+    private final int GRAPH_SIZE;
+    private final String topicName;
 
-    public GraphProducer(FileReader fileReader, BlockingQueue<HashMap<Integer, ArrayList<Integer>>> queue,
-            int NUM_GRAPHS, int GRAPH_SIZE) {
+    public GraphProducer(PubSub pubSub,
+            String topicName,
+            FileReader fileReader,
+            int GRAPH_SIZE) {
+        this.pubSub = pubSub;
         this.scanner = new Scanner(fileReader);
-        this.queue = queue;
-        this.NUM_GRAPHS = NUM_GRAPHS;
         this.GRAPH_SIZE = GRAPH_SIZE;
+        this.topicName = topicName;
     }
 
     @Override
@@ -29,18 +31,19 @@ public class GraphProducer extends Thread {
         while (true) {
             HashMap<Integer, ArrayList<Integer>> newTask = readTask();
             if (newTask == null) {
-                queue.stop();
+                pubSub.stopPublishing(topicName);
                 System.out.println("No more points to read, producer is shutting down");
                 return;
             }
-            queue.addToQueue(newTask);
+            pubSub.publish(topicName, newTask);
         }
     }
 
     /**
      * Reads a task from the input and returns a graph representation.
      * 
-     * @return the graph representation as a HashMap<Integer, ArrayList<Integer>> object,
+     * @return the graph representation as a HashMap<Integer, ArrayList<Integer>>
+     *         object,
      *         or null if there are no more tasks or the task is invalid.
      */
     private HashMap<Integer, ArrayList<Integer>> readTask() {

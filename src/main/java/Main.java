@@ -15,8 +15,9 @@ public class Main {
         File coordsOutputFile = new File(OUTPUT_CLOSEST_COORDS_TXT);
         File graphInputFile = new File(INPUT_GRAPH_TXT);
         File graphOutputFile = new File(OUTPUT_GRAPH_TXT);
-//        PubSubController.startCoordinatesPubSub(coordsInputFile, coordsOutputFile, numProducers, numConsumers);
+        PubSubController.startCoordinatesPubSub(coordsInputFile, coordsOutputFile, numProducers, numConsumers);
         PubSubController.startGraphPubSub(graphInputFile, graphOutputFile, numProducers, numConsumers);
+        System.exit(0);
     }
 
 }
