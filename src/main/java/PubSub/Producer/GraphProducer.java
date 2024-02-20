@@ -7,8 +7,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * The GraphProducer class represents a producer that reads graphs from a file
- * and adds them to a blocking queue.
+ * The GraphProducer class represents a producer for generating graphs and publishing them to
+ * a PubSub system.
  */
 public class GraphProducer extends Thread {
     private final Scanner scanner;
@@ -16,6 +16,14 @@ public class GraphProducer extends Thread {
     private final int GRAPH_SIZE;
     private final String topicName;
 
+    /**
+     * Constructs a new GraphProducer object.
+     * 
+     * @param pubSub     the PubSub system to publish the graphs to.
+     * @param topicName  the name of the topic to publish the graphs to.
+     * @param fileReader the file reader to read the graph data from.
+     * @param GRAPH_SIZE the size of the graphs to be generated.
+     */
     public GraphProducer(PubSub pubSub,
             String topicName,
             FileReader fileReader,
@@ -26,6 +34,11 @@ public class GraphProducer extends Thread {
         this.topicName = topicName;
     }
 
+    /**
+     * Executes the producer thread.
+     * Reads tasks from a source and publishes them to a topic using a PubSub system.
+     * If there are no more tasks to read, the producer stops publishing and shuts down.
+     */
     @Override
     public void run() {
         while (true) {

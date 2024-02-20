@@ -7,7 +7,7 @@ import DataStructures.LinkedList.LinkedListNode;
  * A blocking queue implementation that extends LinkedList.
  * This queue has a maximum size and supports thread-safe operations.
  *
- * @param <T> the type of elements stored in the queue
+ * @param <T> the type of elements stored in the queue.
  */
 public class BlockingQueue<T> extends LinkedList<T> {
     private LinkedList<T> queue = new LinkedList<T>();
@@ -29,7 +29,7 @@ public class BlockingQueue<T> extends LinkedList<T> {
      * If the thread is interrupted while waiting, a RuntimeException will be thrown.
      * After adding the value to the queue, the method notifies the consumer and updates the queue size.
      *
-     * @param value the value to be added to the queue
+     * @param value the value to be added to the queue.
      */
     public synchronized void addToQueue(T value) {
         while(queue.size() >= MAX_SIZE && isRunning) {
@@ -54,7 +54,7 @@ public class BlockingQueue<T> extends LinkedList<T> {
      * If the queue is empty and the queue is no longer running, the method will return null.
      * If the queue size becomes less than the maximum size, producers will be notified.
      * 
-     * @return the element removed from the queue, or null if the queue is empty and no longer running
+     * @return the element removed from the queue, or null if the queue is empty and no longer running.
      */
     public synchronized T removeFromQueue() {
         while (isEmpty && isRunning) {

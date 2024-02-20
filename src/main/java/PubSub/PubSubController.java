@@ -184,7 +184,6 @@ public class PubSubController {
     public static void generateAdjacencyLists(File outputFile) throws IOException {
         FileWriter fileWriter = new FileWriter(outputFile);
         Random rand = new Random();
-        GraphUtils<Integer> utils = new GraphUtils<>();
         HashMap<Integer, ArrayList<Integer>> graph = new HashMap<>();
         for (int i = 0; i < NUM_GRAPHS; i++) {
             int graphType = rand.nextInt(3);

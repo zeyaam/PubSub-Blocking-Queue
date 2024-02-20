@@ -8,9 +8,8 @@ import Model.Task.CoordinateTask;
 import PubSub.PubSub;
 
 /**
- * The CoordinatesProducer class represents a producer that reads coordinate
- * tasks from a file
- * and adds them to a blocking queue.
+ * The CoordinatesProducer class represents a producer that reads coordinates
+ * from a file and publishes them using the PubSub mechanism.
  */
 public class CoordinatesProducer extends Thread {
     private final PubSub pubSub;
@@ -22,9 +21,9 @@ public class CoordinatesProducer extends Thread {
      * Constructs a new CoordinatesProducer with the specified parameters.
      *
      * @param fileReader the FileReader object used to read the coordinates from a
-     *                   file
-     * @param pubSub      the PubSub object used to publish tasks
-     * @param NUM_COORDS the number of coordinates to be produced
+     *                   file.
+     * @param pubSub      the PubSub object used to publish tasks.
+     * @param NUM_COORDS the number of coordinates to be produced.
      */
     public CoordinatesProducer(PubSub pubSub, String topicName, FileReader fileReader, int NUM_COORDS) {
         this.pubSub = pubSub;
@@ -33,6 +32,10 @@ public class CoordinatesProducer extends Thread {
         this.topicName = topicName;
     }
 
+    /**
+     * Executes the producer thread, continuously reading tasks and publishing them to the specified topic.
+     * If there are no more tasks to read, the producer stops publishing and shuts down.
+     */
     @Override
     public void run() {
         while (true) {
@@ -49,7 +52,7 @@ public class CoordinatesProducer extends Thread {
     /**
      * Processes coordinates from the input file.
      * 
-     * @return the Coordinate task read from the file, or null if there are no more
+     * @return the Coordinate task read from the file, or null if there are no more.
      */
     private CoordinateTask readTask() {
         Point[] points = new Point[100];

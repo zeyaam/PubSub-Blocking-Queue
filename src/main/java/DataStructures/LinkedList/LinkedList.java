@@ -3,7 +3,7 @@ package DataStructures.LinkedList;
 /**
  * A linked list implementation in Java.
  * This class provides methods to add and remove elements from the list.
- * @param <T> the type of elements stored in the linked list
+ * @param <T> the type of elements stored in the linked list.
  */
 public class LinkedList<T> {
     private LinkedListNode<T> head = null;
@@ -15,7 +15,7 @@ public class LinkedList<T> {
     /**
      * Represents a linked list data structure.
      * 
-     * @param <T> the type of elements stored in the linked list
+     * @param <T> the type of elements stored in the linked list.
      */
     public LinkedList(LinkedListNode<T> node) {
         this.head = node;
@@ -51,7 +51,7 @@ public class LinkedList<T> {
      * If the list is empty, the node becomes the head and tail.
      * Otherwise, the node is added as the new head and the previous head is updated.
      *
-     * @param node the node to be added
+     * @param node the node to be added.
      */
     public synchronized void addLeft(LinkedListNode<T> node) {
         if (size == 0) {
@@ -69,7 +69,7 @@ public class LinkedList<T> {
      * Removes and returns the element at the head of the linked list.
      * If the linked list is empty, returns null.
      *
-     * @return the element at the head of the linked list, or null if the linked list is empty
+     * @return the element at the head of the linked list, or null if the linked list is empty.
      */
     public synchronized T remove() {
         if (size == 0) {
@@ -91,7 +91,7 @@ public class LinkedList<T> {
     /**
         * Removes and returns the element at the left end of the linked list.
         *
-        * @return the element at the left end of the linked list, or null if the list is empty
+        * @return the element at the left end of the linked list, or null if the list is empty.
         */
     public synchronized T removeLeft() {
         if (size == 0) {

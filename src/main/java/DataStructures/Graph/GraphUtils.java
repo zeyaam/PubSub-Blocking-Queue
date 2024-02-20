@@ -11,7 +11,7 @@ import DataStructures.UnionFind.UnionFind;
 /**
  * Utility class for working with graphs.
  *
- * @param <T> the type of elements in the graph
+ * @param <T> the type of elements in the graph.
  */
 public class GraphUtils<T> {
     public GraphUtils() {
@@ -21,8 +21,8 @@ public class GraphUtils<T> {
     /**
         * Picks a random element from the given set of integers.
         *
-        * @param items the set of integers to pick from
-        * @return a randomly selected integer from the set, or null if the set is empty
+        * @param items the set of integers to pick from.
+        * @return a randomly selected integer from the set, or null if the set is empty.
         */
     public static Integer pickRandomElementFromSet(Set<Integer> items) {
         Random rand = new Random();
@@ -40,10 +40,10 @@ public class GraphUtils<T> {
     /**
      * Creates a graph using DFS.
      * 
-     * @param graph       the graph represented as a HashMap of nodes and their adjacent nodes
-     * @param currentNode the current node to start the DFS from
-     * @param nums        a set of available nodes to visit
-     * @param rand        a random number generator
+     * @param graph       the graph represented as a HashMap of nodes and their adjacent nodes.
+     * @param currentNode the current node to start the DFS from.
+     * @param nums        a set of available nodes to visit.
+     * @param rand        a random number generator.
      */
     public static void createGraph(HashMap<Integer, ArrayList<Integer>> graph, Integer currentNode, Set<Integer> nums, Random rand) {
         if (nums.isEmpty()) {
@@ -65,8 +65,8 @@ public class GraphUtils<T> {
     /**
      * Generates a dependency graph with the specified number of nodes.
      *
-     * @param numNodes the number of nodes in the graph
-     * @return a HashMap representing the dependency graph, where each node is mapped to its dependencies
+     * @param numNodes the number of nodes in the graph.
+     * @return a HashMap representing the dependency graph, where each node is mapped to its dependencies.
      */
     public static HashMap<Integer, ArrayList<Integer>> generateDependencyGraph(int numNodes) {
         HashMap<Integer, ArrayList<Integer>> graph = new HashMap<>();
@@ -81,6 +81,13 @@ public class GraphUtils<T> {
         return graph;
     }
 
+    /**
+     * Generates a random graph with the specified number of nodes.
+     * 
+     * @param numNodes  the number of nodes in the graph.
+     * @param hasCycle  indicates whether the graph is cyclic.
+     * @return          a HashMap representing the generated graph, where the key is the node and the value is a list of its adjacent nodes.
+     */
     public static HashMap<Integer, ArrayList<Integer>> generateRandomGraph(int numNodes, boolean hasCycle) {
         Random rand = new Random();
         HashMap<Integer, ArrayList<Integer>> graph = new HashMap<>();
@@ -107,8 +114,8 @@ public class GraphUtils<T> {
      * Converts a graph represented by a HashMap into an array of strings.
      * Each string in the array represents a vertex in the graph along with its adjacent vertices.
      *
-     * @param graph the graph represented by a HashMap where the key is the vertex and the value is a list of adjacent vertices
-     * @return an array of strings representing the graph
+     * @param graph the graph represented by a HashMap where the key is the vertex and the value is a list of adjacent vertices.
+     * @return an array of strings representing the graph.
      */
     public static String[] convertGraphToString(HashMap<Integer, ArrayList<Integer>> graph) {
         String[] graphString = new String[graph.size()];
@@ -126,8 +133,8 @@ public class GraphUtils<T> {
     /**
      * Determines whether a given graph has a cycle.
      *
-     * @param graph the graph represented as a HashMap of nodes and their adjacent nodes
-     * @return true if the graph has a cycle, false otherwise
+     * @param graph the graph represented as a HashMap of nodes and their adjacent nodes.
+     * @return true if the graph has a cycle, false otherwise.
      */
     public boolean hasCycle(HashMap<T, ArrayList<T>> graph) {
         Set<T> visited = new HashSet<>();
@@ -160,8 +167,8 @@ public class GraphUtils<T> {
     /**
      * Checks if a graph is connected.
      * 
-     * @param graph the graph represented as a HashMap of nodes and their adjacent nodes
-     * @return true if the graph is connected, false otherwise
+     * @param graph the graph represented as a HashMap of nodes and their adjacent nodes.
+     * @return true if the graph is connected, false otherwise.
      */
     public boolean isConnected(HashMap<T, ArrayList<T>> graph) {
         HashMap<T, UnionFind<T>> connections = new HashMap<>();
